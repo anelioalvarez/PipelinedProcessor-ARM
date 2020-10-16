@@ -89,7 +89,14 @@ module datapath
     flopr #(203) EX_MEM(
         .clk(clk),
         .reset(reset), 
-        .d({qID_EX[265:261], PCBranch_E, zero_E, aluResult_E, writeData_E, qID_EX[4:0]}),
+        .d({
+            qID_EX[265:261],
+            PCBranch_E,
+            zero_E,
+            aluResult_E,
+            writeData_E,
+            qID_EX[4:0]
+        }),
         .q(qEX_MEM)
     );
     
@@ -111,7 +118,12 @@ module datapath
     flopr #(135) MEM_WB(
         .clk(clk),
         .reset(reset), 
-        .d({qEX_MEM[199:198], qEX_MEM[132:69],	DM_readData, qEX_MEM[4:0]}),
+        .d({
+            qEX_MEM[199:198],
+            qEX_MEM[132:69],
+            DM_readData,
+            qEX_MEM[4:0]
+        }),
         .q(qMEM_WB)
     );
     

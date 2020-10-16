@@ -34,21 +34,20 @@ module aludec (
                     default: alucontrol = 4'b0000;
                 endcase
 
-            // [I]
+            // [I, IM]
             2'b11:
                 // See Opcode
                 casez(funct)
-                    `ADDI  : alucontrol = `A_PLUS_B;
-                    `ANDI  : alucontrol = `A_AND_B;
-                    `ORRI  : alucontrol = `A_OR_B;
-                    `SUBI  : alucontrol = `A_MINUS_B;
-                    `MOVZ  :
-                        case(funct[1:0]) // lsl
-                            2'b00  : alucontrol = `MOVZ_B_00;
-                            2'b01  : alucontrol = `MOVZ_B_01;
-                            2'b10  : alucontrol = `MOVZ_B_10;
-                            default: alucontrol = `MOVZ_B_11;
-                        endcase
+                    `ADDI:  alucontrol = `A_PLUS_B;
+                    `ANDI:  alucontrol = `A_AND_B;
+                    `ORRI:  alucontrol = `A_OR_B;
+                    `SUBI:  alucontrol = `A_MINUS_B;
+                    `MOVZ:  case(funct[1:0]) // lsl: Instruction[22:21]
+                                2'b00  : alucontrol = `MOVZ_B_00;
+                                2'b01  : alucontrol = `MOVZ_B_01;
+                                2'b10  : alucontrol = `MOVZ_B_10;
+                                default: alucontrol = `MOVZ_B_11;
+                            endcase
                     default: alucontrol = 4'b0000;
                 endcase
 

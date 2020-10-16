@@ -30,12 +30,27 @@ module regfile (
         64'd28, 64'd29, 64'd30, 64'd0
     };
 
+    /*
+    Posible solucion?
+    
     always_ff @(posedge clk)
     begin
         if (we3 & (wa3 !== 5'd31)) registers[wa3] <= wd3;
     end
 
-    assign rd1 = registers[ra1];
-    assign rd2 = registers[ra2];
+    always_ff @(negedge clk)
+    begin
+        rd1 <= registers[ra1];
+        rd2 <= registers[ra2];
+    end
+    */
+
+    always_ff @(posedge clk)
+    begin
+        if (we3 & (wa3 !== 5'd31)) registers[wa3] <= wd3;
+    end
+
+    assign rd1 = we3 & (ra1 == wa3) ? wd3 : registers[ra1];
+    assign rd2 = we3 & (ra2 == wa3) ? wd3 : registers[ra2];
 
 endmodule
