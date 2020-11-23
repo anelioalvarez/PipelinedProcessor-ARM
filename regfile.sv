@@ -7,9 +7,6 @@ Banco de Registros (32reg de 64bits)
 registro de datos: rd1, rd2, wd3
 registros de direccionamiento (address): ra1, ra2, wa3
 
-escritura en wd3 sincrona
-lectura de rd1, rd2 asincrona
-
 */
 
 module regfile (
@@ -30,27 +27,26 @@ module regfile (
         64'd28, 64'd29, 64'd30, 64'd0
     };
 
-    /*
-    Posible solucion?
+    //assign rd1 = registers[ra1];
+    //assign rd2 = registers[ra2];
+
+    always_ff @(posedge clk)
+    begin
+        if (we3 & (wa3 !== 5'd31)) registers[wa3] <= wd3;
+    end
     
-    always_ff @(posedge clk)
-    begin
-        if (we3 & (wa3 !== 5'd31)) registers[wa3] <= wd3;
-    end
+    mux2 #(64) R_DATA1(
+        .d0(registers[ra1]),
+        .d1(wd3),
+        .s(we3 & (ra1 == wa3)),
+        .y(rd1)
+    );
 
-    always_ff @(negedge clk)
-    begin
-        rd1 <= registers[ra1];
-        rd2 <= registers[ra2];
-    end
-    */
-
-    always_ff @(posedge clk)
-    begin
-        if (we3 & (wa3 !== 5'd31)) registers[wa3] <= wd3;
-    end
-
-    assign rd1 = we3 & (ra1 == wa3) ? wd3 : registers[ra1];
-    assign rd2 = we3 & (ra2 == wa3) ? wd3 : registers[ra2];
+    mux2 #(64) R_DATA2(
+        .d0(registers[ra2]),
+        .d1(wd3),
+        .s(we3 & (ra2 == wa3)),
+        .y(rd2)
+    );
 
 endmodule

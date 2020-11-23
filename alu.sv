@@ -25,10 +25,10 @@ module alu (
 			`A_MINUS_B   : result = a - b;
 			`PASS_INPUT_B: result = b;
 			`A_NOR_B     : result = ~(a | b);
-			`MOVZ_B_00   : result = b << (2'b00 * 16);
-			`MOVZ_B_01   : result = b << (2'b01 * 16);
-			`MOVZ_B_10   : result = b << (2'b10 * 16);
-			`MOVZ_B_11   : result = b << (2'b11 * 16);
+			`LSL_B_00    : result = b << (2'b00 * 16);
+			`LSL_B_01    : result = b << (2'b01 * 16);
+			`LSL_B_10    : result = b << (2'b10 * 16);
+			`LSL_B_11    : result = b << (2'b11 * 16);
 			default      : result = 64'b0;
 		endcase
 

@@ -2,19 +2,20 @@
 
 module datapath 
     #(parameter N = 64) (
-        input  logic         reset, clk,
-        input  logic         reg2loc,									
-        input  logic         AluSrc,
-        input  logic [3:0]   AluControl,
-        input  logic         Branch,
-        input  logic         memRead,
-        input  logic         memWrite,
-        input  logic         regWrite,	
-        input  logic         memtoReg,									
-        input  logic [31:0]  IM_readData,
-        input  logic [N-1:0] DM_readData,
-        output logic [N-1:0] IM_addr, DM_addr, DM_writeData,
-        output logic         DM_writeEnable, DM_readEnable
+    input  logic         reset, clk,
+    input  logic         reg2loc,									
+    input  logic         AluSrc,
+    input  logic [3:0]   AluControl,
+    input  logic         Branch,
+    input  logic         memRead,
+    input  logic         memWrite,
+    input  logic         regWrite,	
+    input  logic         memtoReg,									
+    input  logic [31:0]  IM_readData,
+    input  logic [N-1:0] DM_readData,
+    output logic [N-1:0] IM_addr, DM_addr, DM_writeData,
+    output logic         DM_writeEnable, DM_readEnable,
+    output logic         IF_ID_Write // HDU
 );					
                     
     logic         PCSrc;
@@ -24,21 +25,41 @@ module datapath
     logic [95:0]  qIF_ID;
     logic [270:0] qID_EX;
     logic [202:0] qEX_MEM;
-    logic [134:0] qMEM_WB;
-    
+    logic [135:0] qMEM_WB;
+    logic [4:0]   Reg_address1, Reg_address2;
+    logic         PCWrite, stall; // out HDU
+    logic [9:0]   Ctrl_signals;
+
+
     fetch #(64) FETCH(
         .PCSrc_F(PCSrc),
         .clk(clk),
         .reset(reset),
         .PCBranch_F(qEX_MEM[197:134]),
-        .imem_addr_F(IM_addr)
+        .imem_addr_F(IM_addr),
+        .enable(PCWrite)
     );
 
-    flopr #(96) IF_ID(
+    flopr_e #(96) IF_ID(
         .clk(clk),
         .reset(reset), 
         .d({IM_addr, IM_readData}),
-        .q(qIF_ID)
+        .q(qIF_ID),
+        .enable(IF_ID_Write)
+    );
+
+    hazard_du HDU(
+        .Instr_Ra1(Reg_address1),
+        .Instr_Ra2(Reg_address2),
+        .ID_EX_Rd(qID_EX[4:0]),
+        .EX_MEM_Rd(qEX_MEM[4:0]),
+        .MEM_WB_Rd(qMEM_WB[4:0]),
+        .MEM_WB_MemRead(qMEM_WB[135]),
+        .ID_EX_RegWrite(qID_EX[262]),
+        .EX_MEM_RegWrite(qEX_MEM[199]),
+        .PCWrite(PCWrite),
+        .IF_ID_Write(IF_ID_Write),
+        .stall(stall)
     );
 
     decode #(64) DECODE(
@@ -50,26 +71,22 @@ module datapath
         .signImm_D(signImm_D), 
         .readData1_D(readData1_D),
         .readData2_D(readData2_D),
-        .wa3_D(qMEM_WB[4:0])
+        .wa3_D(qMEM_WB[4:0]),
+        .ra1_D(Reg_address1),
+        .ra2_D(Reg_address2)
     );
     
+    mux2 #(10) ID_CTRL_SIGNALS(
+        .d0({AluSrc, AluControl, Branch, memRead, memWrite, regWrite, memtoReg}),
+        .d1(10'b0),
+        .s(stall),
+        .y(Ctrl_signals)
+    );
+
     flopr #(271) ID_EX(
         .clk(clk),
         .reset(reset), 
-        .d({
-            AluSrc,
-            AluControl,
-            Branch,
-            memRead,
-            memWrite,
-            regWrite,
-            memtoReg,	
-            qIF_ID[95:32],
-            signImm_D,
-            readData1_D,
-            readData2_D,
-            qIF_ID[4:0]
-        }),
+        .d({Ctrl_signals, qIF_ID[95:32], signImm_D, readData1_D, readData2_D, qIF_ID[4:0]}),
         .q(qID_EX)
     );
     
@@ -89,14 +106,7 @@ module datapath
     flopr #(203) EX_MEM(
         .clk(clk),
         .reset(reset), 
-        .d({
-            qID_EX[265:261],
-            PCBranch_E,
-            zero_E,
-            aluResult_E,
-            writeData_E,
-            qID_EX[4:0]
-        }),
+        .d({qID_EX[265:261], PCBranch_E, zero_E, aluResult_E, writeData_E, qID_EX[4:0]}),
         .q(qEX_MEM)
     );
     
@@ -115,15 +125,10 @@ module datapath
     assign DM_writeEnable = qEX_MEM[200];
     assign DM_readEnable = qEX_MEM[201];
     
-    flopr #(135) MEM_WB(
+    flopr #(136) MEM_WB(
         .clk(clk),
         .reset(reset), 
-        .d({
-            qEX_MEM[199:198],
-            qEX_MEM[132:69],
-            DM_readData,
-            qEX_MEM[4:0]
-        }),
+        .d({qEX_MEM[201], qEX_MEM[199:198], qEX_MEM[132:69], DM_readData, qEX_MEM[4:0]}),
         .q(qMEM_WB)
     );
     

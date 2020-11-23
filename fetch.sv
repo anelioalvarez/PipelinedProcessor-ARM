@@ -11,7 +11,8 @@ module fetch
     input  logic         PCSrc_F,
     input  logic         clk, reset,
     input  logic [N-1:0] PCBranch_F,
-    output logic [N-1:0] imem_addr_F
+    output logic [N-1:0] imem_addr_F,
+    input  logic         enable
 );
     // Internal signals
     logic [N-1:0] mux_out;
@@ -26,11 +27,12 @@ module fetch
         .y(mux_out)
     );
 
-    flopr #(64) PC(
+    flopr_e #(64) PC(
         .clk(clk),
         .reset(reset),
         .d(mux_out),
-        .q(imem_addr_F)
+        .q(imem_addr_F),
+        .enable(enable)
     );
 
     adder #(64) Add(

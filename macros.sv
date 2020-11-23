@@ -15,15 +15,15 @@
 `define SUBI 11'b110_1000_100?
 `define MOVZ 11'b110_1001_01??
 
-// Operation Mapping: Operation -> Ctrl
+// Operation Mapping: Operation -> ALUControl
 `define A_AND_B      4'b0000
 `define A_OR_B       4'b0001
 `define A_PLUS_B     4'b0010
 `define A_MINUS_B    4'b0110
 `define PASS_INPUT_B 4'b0111
 `define A_NOR_B      4'b1100
-`define MOVZ_B_00    4'b1000
-`define MOVZ_B_01    4'b1001
-`define MOVZ_B_10    4'b1010
-`define MOVZ_B_11    4'b1011
+`define LSL_B_00     4'b1000
+`define LSL_B_01     4'b1001
+`define LSL_B_10     4'b1010
+`define LSL_B_11     4'b1011
 

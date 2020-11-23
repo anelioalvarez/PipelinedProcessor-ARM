@@ -14,6 +14,7 @@ module processor_arm
     logic [N-1:0] DM_readData, IM_address;  //DM_addr, DM_writeData
     logic         DM_readEnable; //DM_writeEnable
     logic [10:0]  instr;
+    logic         IF_ID_Write;   // HDU
     
     controller c(
         .instr(instr), 
@@ -44,10 +45,10 @@ module processor_arm
         .DM_addr(DM_addr), 
         .DM_writeData(DM_writeData), 
         .DM_writeEnable(DM_writeEnable), 
-        .DM_readEnable(DM_readEnable)
-    );				
-                    
-                    
+        .DM_readEnable(DM_readEnable),
+        .IF_ID_Write(IF_ID_Write)
+    );
+    
     imem instrMem(
         .addr(IM_address[7:2]),
         .q(q)
@@ -63,11 +64,12 @@ module processor_arm
         .dump(dump)
     ); 							
                                  
-    flopr #(11)	IF_ID_TOP(
+    flopr_e #(11) IF_ID_TOP(
         .clk(CLOCK_50),
         .reset(reset), 
         .d(q[31:21]), 
-        .q(instr)
+        .q(instr),
+        .enable(IF_ID_Write)
     );
      
 endmodule
